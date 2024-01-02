@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container mt-4">
+    <h1>Data Visualization Dashboard</h1>
+
+    <!-- Filters -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <label for="endYearFilter">End Year:</label>
+            <select class="form-control" id="endYearFilter">
+                <!-- Add options dynamically using JavaScript -->
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="topicFilter">Topics:</label>
+            <select class="form-control" id="topicFilter">
+                <!-- Add options dynamically using JavaScript -->
+            </select>
+        </div>
+        <!-- Add other filters as needed -->
+    </div>
+
+    <!-- Charts -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <canvas id="intensityChart" width="400" height="200"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="likelihoodChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+    // API URL for fetching data
+    const api_url = "/api/news_articles/";
+
+    // Fetch data from the API
+    fetch(api_url)
+        .then(response => response.json())
+        .then(data => {
+            // Call the function to create charts with the fetched data
+            processChartData(data);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+});
+
+function processChartData(data) {
+    // Populate filters
+    const endYearFilter = document.getElementById('endYearFilter');
+    const topicFilter = document.getElementById('topicFilter');
+
+    const uniqueEndYears = [...new Set(data.map(entry => entry.end_year))];
+    const uniqueTopics = [...new Set(data.map(entry => entry.topic))];
+
+    uniqueEndYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.text = year || 'Not specified';
+        endYearFilter.add(option);
+    });
+
+    uniqueTopics.forEach(topic => {
+        const option = document.createElement('option');
+        option.value = topic;
+        option.text = topic || 'Not specified';
+        topicFilter.add(option);
+    });
+
+    // Dummy chart data
+    const intensityData = data.map(entry => entry.intensity);
+    const likelihoodData = data.map(entry => entry.likelihood);
+
+    // Create charts
+    createChart('intensityChart', 'Intensity', intensityData);
+    createChart('likelihoodChart', 'Likelihood', likelihoodData);
+}
+
+function createChart(chartId, label, data) {
+    const ctx = document.getElementById(chartId).getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map((_, index) => index + 1),
+            datasets: [{
+                label: label,
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                },
+            }
+        }
+    });
+}
+
+</script>
+</body>
+</html>
